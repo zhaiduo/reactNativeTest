@@ -43,13 +43,21 @@ var styles = StyleSheet.create({
   year: {
     textAlign: 'center',
   },
+  listView: {
+    paddingTop: 20,
+    backgroundColor: '#F5FCFF',
+  },
 });
 
 class AwesomeProject extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      movies: null,
+      //movies: null,
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2,
+      }),
+      loaded: false,
     };
   }
   componentDidMount() {
@@ -61,22 +69,29 @@ class AwesomeProject extends Component {
       .then((response) => response.json())
       .then((responseData) => {
         this.setState({
-          movies: responseData.movies,
+          dataSource: this.state.dataSource.cloneWithRows(responseData.movies),
+          loaded: true,
         });
+        /*this.setState({
+          movies: responseData.movies,
+        });*/
       })
       .done();
   }
 
   render() {
-   /* if (!this.state.movies) {
+    //single line
+    /*if (!this.state.movies) {
       return this.renderLoadingView();
-    }*/
+    }
+    var movie = this.state.movies[0];
+    return this.renderMovie(movie);*/
+
+    //list view
     if (!this.state.loaded) {
       return this.renderLoadingView();
     }
 
-    //var movie = this.state.movies[0];
-    //return this.renderMovie(movie);
     return (
       <ListView
         dataSource={this.state.dataSource}
