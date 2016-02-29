@@ -1,6 +1,14 @@
 
 'use strict';
 
+var Config = require('./_config');
+
+var AV = require('avoscloud-sdk').AV;
+
+AV.initialize(Config.AppID, Config.AppKey);
+
+var Item = AV.Object.extend('Item');
+
 var React = require('react-native');
 var {
   StyleSheet,
@@ -9,10 +17,13 @@ var {
   View,
   TouchableHighlight,
   ActivityIndicatorIOS,
+  AlertIOS,
   Image,
+  Dimensions,
   Component
 } = React;
 
+var containerH = Dimensions.get('window').height - 65
 var styles = StyleSheet.create({
   description: {
     marginBottom: 20,
@@ -23,6 +34,7 @@ var styles = StyleSheet.create({
   container: {
     padding: 30,
     /*marginTop: 65,*/
+    height: containerH,
     alignItems: 'center',
     backgroundColor: '#333',
     justifyContent: 'center',
@@ -81,8 +93,10 @@ function urlForQueryAndPage(postData, pageNumber) {
   var querystring = Object.keys(data)
     .map(key => key + '=' + encodeURIComponent(data[key]))
     .join('&');
-  return '/vip/get_user_info/?' + querystring;
+  return '/?' + querystring;
 };
+
+var LayoutComponent = require('./LayoutComponent');
 
 class LoginPage extends Component {
     constructor(props) {
@@ -95,32 +109,80 @@ class LoginPage extends Component {
     }
 
     onUsernameChanged(event) {
-      console.log('onUsernameChanged');
+      //console.log('onUsernameChanged');
       this.setState({ username: event.nativeEvent.text });
-      console.log(this.state.username);
+      //console.log(this.state.username);
     }
 
     onPasswdChanged(event) {
-      console.log('onPasswdChanged');
+      //console.log('onPasswdChanged');
       this.setState({ passwd: event.nativeEvent.text });
-      console.log(this.state.passwd);
+      //console.log(this.state.passwd);
     }
 
     _postLogin(query) {
-      this.setState({ loading: true });
-      console.log(query);
-      fetch(query)
-      .then(response => response.json())
-      .then(json => this._handleResponse(json.response))
-      .catch(error =>
-         this.setState({
-          isLoading: false,
-          message: 'failed ' + error
-       }));
+
+      var _this = this;
+      _this.setState({ loading: true });
+      //console.log(query);
+
+      //https://blog.leancloud.cn/3993/
+
+      /*var item = new Item();
+      item.set('content', query);
+      item.save().then(function() {
+        AlertIOS.alert('保存成功');
+      }).catch(function(e) {
+        AlertIOS.alert('保存失败', e.message);
+      });*/
+
+      //https://leancloud.cn/docs/js_guide.html#检索对象
+      var q = new AV.Query(Item);
+      q.get('56d5bd16816dfa0051c49e47').then(function(item) {
+
+        _this.setState({
+          username: '',
+          passwd:'',
+          loading: false,
+        });
+
+        // 成功获得实例
+        var content = item.get('content');
+        if(content == query){
+
+          _this.props.navigator.push({
+            title: '欢迎～',
+            component: LayoutComponent,
+            passProps: {listings: [item]}
+          });
+        }else{
+          AlertIOS.alert("登录失败");
+        }
+
+
+      }, function(error) {
+        AlertIOS.alert('Error: ' + error.code + ' ' + error.message);
+      });
+
+      /*var q = new AV.Query('Item');
+      q.equalTo('content', query);
+      q.find().then(function(results) {
+        AlertIOS.alert(results.length);
+        // 处理返回的结果数据
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          AlertIOS.alert(object.id + ' - ' + object.get('content'));
+        }
+      }, function(error) {
+        AlertIOS.alert('Error: ' + error.code + ' ' + error.message);
+      });*/
+
     }
 
     _handleResponse(response) {
       this.setState({ isLoading: false , message: '' });
+
+      AlertIOS.alert(response);
       //alert('1');
       /*if (response.application_response_code.substr(0, 1) === '1') {
         console.log('Properties found: ' + response.listings.length);
@@ -134,6 +196,7 @@ class LoginPage extends Component {
         'username':this.state.username,
         'password':this.state.passwd
       }, 1);
+      //AlertIOS.alert('query: '+query);
       this._postLogin(query);
     }
 

@@ -1,4 +1,5 @@
 
+
 var REQUEST_URL = 'https://raw.githubusercontent.com/facebook/react-native/master/docs/MoviesExample.json';
 
 /*var MOCKED_MOVIES_DATA = [
@@ -158,7 +159,7 @@ class Movies extends Component {
   }
 }
 
-var LoginPage = require('./LoginPage');
+var LoginPage = require('./LoginPage'); //require('./CirclePage');
 
 
 class AwesomeProject extends React.Component {
